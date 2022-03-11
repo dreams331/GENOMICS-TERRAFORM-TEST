@@ -72,3 +72,44 @@ resource "aws_api_gateway_authorizer" "ak-auth" {
 output "base_url" {
   value = "${aws_api_gateway_deployment.api-deploy.invoke_url}"
 }
+
+resource "aws_api_gateway_stage" "stage-api" {
+ 	deployment_id = aws_api_gateway_deployment.api-deploy.id
+ 	rest_api_id = aws_api_gateway_rest_api.ak-api.id
+ 	stage_name = "stage-api"
+ 	}
+
+resource "aws_api_gateway_usage_plan" "demo-plan" {
+ 	name = "usage-plan"
+ 	description = "my description"
+ 	product_code = "MYCODE"
+ 	 
+ 	api_stages {
+ 	api_id = aws_api_gateway_rest_api.ak-api.id
+ 	stage = aws_api_gateway_stage.stage-api.stage_name
+ 	}
+ 	 
+ 	 
+ 	quota_settings {
+ 	limit = 20
+ 	offset = 2
+ 	period = "WEEK"
+ 	}
+ 	 
+ 	throttle_settings {
+ 	burst_limit = 5
+ 	rate_limit = 10
+ 	}
+ 	}
+ 	 
+ 	# Creating API Key
+ 	resource "aws_api_gateway_api_key" "api-key" {
+ 	name = "demo"
+ 	}
+ 	 
+ 	# Attaching API Key to usage plan
+ 	resource "aws_api_gateway_usage_plan_key" "main" {
+ 	key_id = aws_api_gateway_api_key.api-key.id
+ 	key_type = "API_KEY"
+ 	usage_plan_id = aws_api_gateway_usage_plan.demo-plan.id
+ 	}
