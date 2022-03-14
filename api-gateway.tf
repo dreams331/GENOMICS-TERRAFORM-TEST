@@ -15,6 +15,7 @@ resource "aws_api_gateway_method" "proxy" {
   resource_id   = "${aws_api_gateway_resource.proxy.id}"
   http_method   = "ANY"
   authorization = "NONE"
+  api_key_required = true
 }
 
 
@@ -50,8 +51,8 @@ resource "aws_api_gateway_integration" "lambda_root" {
 
 resource "aws_api_gateway_deployment" "api-deploy" {
   depends_on = [
-    "aws_api_gateway_integration.lambda",
-    "aws_api_gateway_integration.lambda_root",
+     aws_api_gateway_integration.lambda,
+     aws_api_gateway_integration.lambda_root,
   ]
 
   rest_api_id = "${aws_api_gateway_rest_api.ak-api.id}"
@@ -59,19 +60,11 @@ resource "aws_api_gateway_deployment" "api-deploy" {
 }
 
 
-
-resource "aws_api_gateway_authorizer" "ak-auth" {
-  name                   = "demo"
-  rest_api_id            = "${aws_api_gateway_rest_api.ak-api.id}"
-  authorizer_uri         = "${aws_lambda_function.test_lambda.invoke_arn}"
-  authorizer_credentials = "${aws_iam_policy.lambda_can_log_and_read_params.arn}"
-}
-
-
 # THIS IS TO ALLOW ACCESS TO THE URL
 output "base_url" {
   value = "${aws_api_gateway_deployment.api-deploy.invoke_url}"
 }
+
 
 resource "aws_api_gateway_stage" "stage-api" {
  	deployment_id = aws_api_gateway_deployment.api-deploy.id
