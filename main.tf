@@ -77,34 +77,7 @@ resource "aws_lambda_function" "test_lambda" {
 }
 
 
-
-/*resource "aws_apigatewayv2_api" "lambda-api" {
-  name          = "v2-http-api"
-  protocol_type = "HTTP"
-}
-
-resource "aws_apigatewayv2_stage" "lambda-stage" {
-  api_id = aws_apigatewayv2_api.lambda-api.id
-  name = "$default"
-  auto_deploy = true
-  
-}
-
-resource "aws_apigatewayv2_integration" "lambda-intergration" {
-  api_id = aws_apigatewayv2_api.lambda-api.id
-  integration_type = "AWS_PROXY"
-  integration_method = "POST"
-  integration_uri = aws_lambda_function.test_lambda.invoke_arn
-  passthrough_behavior = "WHEN_NO_MATCH"
-}
-
-resource "aws_apigatewayv2_route" "lambda-route" {
-  api_id = aws_apigatewayv2_api.lambda-api.id
-  route_key = "GET /{proxy+}"
-  target = "integrations/${aws_apigatewayv2_integration.lambda-intergration.id}"
-}
-*/
-
+# GIVE PERMISSION TO LAMBDA TO ALLOW API
 resource "aws_lambda_permission" "allow-api" {
   statement_id  = "AllowAPIgatewayInvokation"
   action        = "lambda:InvokeFunction"
