@@ -4,28 +4,6 @@ import pprint
 import random
  
 def lambda_handler(event,context):
-    client = boto3.client('ssm')
+    client = boto3.client('s3')
 
-    test=event['queryStringParameters']['ParameterName']
-    val= str(random.randint(10001,100001)) 
 
-    body = {
-        "Congratulations! Your Parameter is sucessfully created": "" , 'ParameterName': str(test), 'ParameterValue':val}
-
-    # This will fetch existing parameter in Parameter Store using get_parameter method
-    try:
-        if event['httpMethod']=='GET' and test:
-            resp = client.get_parameter( Name = test, WithDecryption=True )
-            body = {'ParameterName': test, 'ParameterValue': val}
-
-    # This will create new parameter in Parameter Store using put_parameter method        
-    except Exception as e:
-        client.put_parameter(
-       Name =test, Description="A test parameter", Value=val, Type="SecureString"
-    )
- 
-        pass
-    response = {'statusCode': 200, 'body': json.dumps(body) }
-    return response
-    
-    
