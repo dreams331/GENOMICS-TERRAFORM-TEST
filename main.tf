@@ -121,7 +121,8 @@ resource "aws_s3_bucket" "destination_bucket" {
   
 resource "aws_lambda_function_event_invoke_config" "move_to_s3" {
   function_name = aws_lambda_function.test_lambda.function_name
-
+  qualifier     = "$LATEST"
+  
   destination_config {
     on_failure {
       destination = aws_s3_bucket.incoming_bucket.arn
