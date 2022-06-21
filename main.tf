@@ -4,13 +4,14 @@ region = "us-east-2"
 }
 
 # THIS IS TO CREATE A ZIP FILE FROM THE .PY FILE FOR LAMBDA
-}
-
-# CREATE IAM ROLE FOR LAMBDA AND GIVE IT ALLOW PERMISSION
 data "archive_file" "lambda" {
   type        = "zip"
   source_file = "lambda.py"
   output_path = "lambda.zip"
+}
+
+# CREATE IAM ROLE FOR LAMBDA AND GIVE IT ALLOW PERMISSION
+
 resource "aws_iam_role" "iam_for_lambda" {
   name = "iam_for_lambda"
 
