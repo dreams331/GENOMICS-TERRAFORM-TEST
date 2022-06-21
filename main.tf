@@ -31,12 +31,12 @@ resource "aws_iam_role" "iam_for_lambda" {
 EOF
 }
 
-# IAM FOR LAMBDA TO get PARAMETER
+# IAM FOR LAMBDA TO get S3
 
-resource "aws_iam_policy" "lambda_can_log_and_read_params" {
-  name        = "ssm_policy"
+resource "aws_iam_policy" "lambda_can_write_s3" {
+  name        = "s3_policy"
   path        = "/"
-  description = "MANAGED BY TERRAFORM Allow Lambda to log"
+  description = "MANAGED BY TERRAFORM Allow Lambda to write"
 
   policy = <<EOF
 {
@@ -44,7 +44,7 @@ resource "aws_iam_policy" "lambda_can_log_and_read_params" {
   "Statement": [
     {
       "Sid": "Stmt1646328525749",
-      "Action": "ssm:*",
+      "Action": "s3:*",
       "Effect": "Allow",
       "Resource": "*"
     }
@@ -58,7 +58,7 @@ EOF
 
 resource "aws_iam_role_policy_attachment" "attach-policy" {
   role       = aws_iam_role.iam_for_lambda.id
-  policy_arn = aws_iam_policy.lambda_can_log_and_read_params.arn
+  policy_arn = aws_iam_policy.lambda_can_write_to_s3.arn
 }
      
 
@@ -77,11 +77,36 @@ resource "aws_lambda_function" "test_lambda" {
 }
 
 
-# GIVE PERMISSION TO LAMBDA TO ALLOW API
-resource "aws_lambda_permission" "allow-api" {
-  statement_id  = "AllowAPIgatewayInvokation"
+# GIVE PERMISSION TO LAMBDA TO ALLOW S3
+
+resource "aws_lambda_permission" "allow_bucket" {
+  statement_id  = "AllowExecutionFromS3Bucket"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.test_lambda.arn
-  principal     = "apigateway.amazonaws.com"
-  source_arn = "${aws_api_gateway_rest_api.ak-api.execution_arn}/*/*/*"
+  function_name = aws_lambda_function.test_function.arn
+  principal     = "s3.amazonaws.com"
+  source_arn    = aws_s3_bucket.incoming_bucket.arn
 }
+
+
+
+resource "aws_s3_bucket" "incoming_bucket" {
+  bucket = "your-bucket-name"
+}
+
+resource "aws_s3_bucket_notification" "bucket_notification" {
+  bucket = aws_s3_bucket.incoming_bucket.id
+
+  lambda_function {
+    lambda_function_arn = aws_lambda_function.test_lambda.arn
+    events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "AWSLogs/"
+    filter_suffix       = ".log"
+  }
+
+  depends_on = [aws_lambda_permission.allow_bucket]
+}
+
+resource "aws_s3_bucket" "destination_bucket" {
+  bucket = "my_bucket_name"
+}  
+
