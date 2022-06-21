@@ -106,7 +106,5 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
   depends_on = [aws_lambda_permission.allow_bucket]
 }
 
-resource "aws_s3_bucket" "destination_bucket" {
-  bucket = "my_bucket_name"
-}  
+ 
 
