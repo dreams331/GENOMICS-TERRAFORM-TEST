@@ -4,13 +4,13 @@ region = "us-east-2"
 }
 
 # THIS IS TO CREATE A ZIP FILE FROM THE .PY FILE FOR LAMBDA
+}
+
+# CREATE IAM ROLE FOR LAMBDA AND GIVE IT ALLOW PERMISSION
 data "archive_file" "lambda" {
   type        = "zip"
   source_file = "lambda.py"
   output_path = "lambda.zip"
-}
-
-# CREATE IAM ROLE FOR LAMBDA AND GIVE IT ALLOW PERMISSION
 resource "aws_iam_role" "iam_for_lambda" {
   name = "iam_for_lambda"
 
@@ -91,7 +91,7 @@ resource "aws_lambda_permission" "allow_bucket" {
 }
 
 
-# CREATING S3 BUCKET
+# CREATING INPUT S3 BUCKET
 resource "aws_s3_bucket" "incoming_bucket" {
   bucket = "your-bucket-name"
 }
@@ -111,4 +111,25 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
 }
 
  
+# CREATING OUTPUT S3 BUCKET
+resource "aws_s3_bucket" "destination_bucket" {
+  bucket = "your-bucket-name"
+}
+  
+  
+  # TO MOVE IMAGE INTO OUTPUT S3 BUCKET
+  
+resource "aws_lambda_function_event_invoke_config" "move_to_s3" {
+  function_name = aws_lambda_function.test_lambda.function_name
+
+  destination_config {
+    on_failure {
+      destination = aws_s3_bucket.incoming_bucket.arn
+    }
+
+    on_success {
+      destination = aws_s3_bucket.destination_bucket.arn
+    }
+  }
+}
 
